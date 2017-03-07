@@ -23,6 +23,7 @@ The dataset that I am using in the final assignment concerns alcohol consumption
 My hypothesis is that bad family relationships implicate higher alcohol consumption rate and lower grades. I will also examine the parents' education's effect on the child. I have added a few variables to the data concerning this case to help the analysis.
 
 Here is a link to the data wrangling file:
+https://github.com/JunzQ7/IODS-final/blob/master/final_wrangling.R
 
 
 ### Summarizing and visualization
