@@ -1,0 +1,157 @@
+
+---
+title: IODS-final
+author: "Juhana Rautavirta"
+date: 3.3.2017
+description: "lol"
+output: html_document
+---
+<p> juhana.rautavirta@helsinki.fi </p>
+
+### Abstract
+
+*Backrounds:*
+In this analysis we are going to explore relationships between usage of alcohol, family relationships and grades of Italian secondary level students. I
+  
+*Methods:*
+I am using multiple and simple linear regression.
+
+### Research question
+
+The dataset that I am using in the final assignment concerns alcohol consumption among Italian secondary level students. I am especially interested in the relations between family relationships and alcohol consumption. We will also see what kind of effect these have in the grades.
+
+My hypothesis is that bad family relationships implicate higher alcohol consumption rate and lower grades. I will also examine the parents' education's effect on the child. I have added a few variables to the data concerning this case to help the analysis.
+
+Here is a link to the data wrangling file:
+
+
+### Summarizing and visualization
+
+Let us begin our analysis by reading the dataset from the wrangling file.
+
+Reading the datasets:
+```{r message = F, warning = F} 
+setwd("~/Desktop/IODS-final-master")
+alc <- read.csv("alc.csv")
+alc <- alc[,2:38]
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(tidyr)
+library(corrplot)
+```
+
+Exploring the structure and the dimensions of the data
+
+```{r}
+str(alc)
+dim(alc)
+```
+
+This data consists of 38 variables and 382 observations. Let's take a look a summary of the data:
+
+What the variables are representing, can be seen from the following:
+
+1. school - student's school (binary: 'GP' - Gabriel Pereira or 'MS' - Mousinho da Silveira) 
+2. sex - student's sex (binary: 'F' - female or 'M' - male) 
+3. age - student's age (numeric: from 15 to 22) 
+4. address - student's home address type (binary: 'U' - urban or 'R' - rural) 
+5. famsize - family size (binary: 'LE3' - less or equal to 3 or 'GT3' - greater than 3) 
+6. Pstatus - parent's cohabitation status (binary: 'T' - living together or 'A' - apart) 
+7. Medu - mother's education (numeric: 0 - none, 1 - primary education (4th grade), 2 Ã¢â‚¬â€œ 5th to 9th grade, 3 Ã¢â‚¬â€œ secondary education or 4 Ã¢â‚¬â€œ higher education) 
+8. Fedu - father's education (numeric: 0 - none, 1 - primary education (4th grade), 2 Ã¢â‚¬â€œ 5th to 9th grade, 3 Ã¢â‚¬â€œ secondary education or 4 Ã¢â‚¬â€œ higher education) 
+9. Mjob - mother's job (nominal: 'teacher', 'health' care related, civil 'services' (e.g. administrative or police), 'at_home' or 'other') 
+10. Fjob - father's job (nominal: 'teacher', 'health' care related, civil 'services' (e.g. administrative or police), 'at_home' or 'other') 
+11. reason - reason to choose this school (nominal: close to 'home', school 'reputation', 'course' preference or 'other') 
+12. guardian - student's guardian (nominal: 'mother', 'father' or 'other') 
+13. traveltime - home to school travel time (numeric: 1 - <15 min., 2 - 15 to 30 min., 3 - 30 min. to 1 hour, or 4 - >1 hour) 
+14. studytime - weekly study time (numeric: 1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours) 
+15. failures - number of past class failures (numeric: n if 1<=n<3, else 4) 
+16. schoolsup - extra educational support (binary: yes or no) 
+17. famsup - family educational support (binary: yes or no) 
+18. paid - extra paid classes within the course subject (Math or Portuguese) (binary: yes or no) 
+19. activities - extra-curricular activities (binary: yes or no) 
+20. nursery - attended nursery school (binary: yes or no) 
+21. higher - wants to take higher education (binary: yes or no) 
+22. internet - Internet access at home (binary: yes or no) 
+23. romantic - with a romantic relationship (binary: yes or no) 
+24. famrel - quality of family relationships (numeric: from 1 - very bad to 5 - excellent) 
+25. freetime - free time after school (numeric: from 1 - very low to 5 - very high) 
+26. goout - going out with friends (numeric: from 1 - very low to 5 - very high) 
+27. Dalc - workday alcohol consumption (numeric: from 1 - very low to 5 - very high) 
+28. Walc - weekend alcohol consumption (numeric: from 1 - very low to 5 - very high) 
+29. health - current health status (numeric: from 1 - very bad to 5 - very good) 
+30. absences - number of school absences (numeric: from 0 to 93) 
+31. G1 - first period grade (numeric: from 0 to 20) 
+32. G2 - second period grade (numeric: from 0 to 20) 
+33. G3 - final grade (numeric: from 0 to 20, output target) 
+34. alc_use - mean of alcohol use (from work days and weekends) (numeric)
+35. high_use - high usage of alcohol (logical: T or F)
+36. bothAtHome - both of the parents' job is "at home" (logical: T or F)
+37. parentEdu - both of the parents have at least a secondary level education (logical: T or F)
+
+So, before the analysis we have combined two datasets and added a few new variables to the data. Before we go to deeper analysis, we shall take a visual look at the distributions of the interesting variables and correlations between them.
+
+
+```{r}
+interesting <- c("age", "failures", "famrel", "health", "alc_use", "parentEdu", "G3")
+ggpairs((select(alc, one_of(interesting)))) + ggtitle("Distributions and correlations")
+corrplot(cor(select(alc,one_of(interesting))), method="square", type="upper", cl.pos="b", tl.pos="d", tl.cex=0.6)
+```
+  
+    
+We can see that there is a strong negative correlation between the grade means and the failures, which is quite logical. What is more interesting is that there is a correlation between parents' education and the failures. The grade means seem to be almost normally distributed and the alcohol usage seems to be somewhat exponentially distributed.
+
+### Analysis
+
+
+**Linear regression**  
+This statistical test is testing how well the target value ($y$) corresponds to the explanatory variables ($x_1, x_2, x_3, ...$), if we assume that there is a linear regression between the variables, so that $y = \alpha + \beta_1x_1 + \beta_2x_2 + \beta_3x_3 + ... + \epsilon$, where $\epsilon$ is assumed to be a normally distributed error variable with a mean of 0. 
+  
+
+##### **Grades as target**
+
+```{r}
+summary(lm(alc$G3 ~ alc$famrel + alc$alc_use))
+```
+
+Here we have a summary of the linear regression model, where $y$ = G3 $x_1$ = famrel and $x_2$ = alc_use. Our results are as follows: $\beta_1$ = 0.1506 and $\beta_2$ = -0.5083. We have two null hyphothesis - one that family relationships don't explain the grades and one that nor does the usage of alcohol ($\beta_{1,2} = 0$). For the first hypothesis we get a p-value of 0.42, which doesn't lead to rejection of the null hypothesis. On the other hand, for the later hypothesis we get a p-value of 0.003, which tells that with a significance level of 0.05 we can reject the null hypothesis quite confidently. Let's draw a plot to see this result:
+
+```{r}
+plot(G3 ~ jitter(alc_use,3), data = alc)
+abline(lm(G3 ~ alc_use, data = alc), col = "red")
+```
+
+
+##### **Usage of alcohol as target**
+
+Next let's have a look at the hypothesis that family relationships explain the usage of alcohol.
+
+```{r}
+summary(lm(alc_use ~ famrel,data = alc))
+plot(jitter(alc$alc_use,3) ~ jitter(alc$famrel,4))
+abline(lm(alc_use ~ famrel, data = alc), col = "red")
+```
+  
+    
+    
+Looks like we can reject this null hypothesis and conclude that better family relationships tend to decrease the usage of alcohol.
+
+
+### Conclusions and discussion
+  
+  
+Our results are as following:
+
+* family relationships doesn't have effect on grades
+* greater usage of alcohol leads to worse grades
+* better family relationships imply smaller usage of alcohol
+
+
+
+
+
+
+
+
+
